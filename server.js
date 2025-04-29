@@ -14,10 +14,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Connect MongoDB
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error(err));
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.error(err));
 
 // Models
 const User     = require('./models/User');
@@ -44,7 +47,7 @@ function authRetailer(req, res, next) {
   }
 }
 
-// ───── User Registration ─────
+// ── User Registration ──
 app.post('/api/users/register', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -61,7 +64,7 @@ app.post('/api/users/register', async (req, res) => {
   }
 });
 
-// ───── User Login ─────
+// ── User Login ──
 app.post('/api/users/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -76,7 +79,25 @@ app.post('/api/users/login', async (req, res) => {
   }
 });
 
-// ───── Retailer Login ─────
+
+// ── Retailer Registration ──
+app.post('/api/retailers/register', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (await Retailer.findOne({ email })) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+      const retailer = new Retailer({ email, password });
+      await retailer.save();
+      const token = generateToken(retailer._id, 'retailer');
+      res.status(201).json({ token });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Registration failed' });
+    }
+  });
+  
+// ── Retailer Login ──
 app.post('/api/retailers/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -91,7 +112,7 @@ app.post('/api/retailers/login', async (req, res) => {
   }
 });
 
-// ───── Create Shop ─────
+// ── Create Shop ──
 app.post('/api/shops', authRetailer, async (req, res) => {
   try {
     const shop = await Shop.create({
@@ -105,7 +126,7 @@ app.post('/api/shops', authRetailer, async (req, res) => {
   }
 });
 
-// ───── Add Product ─────
+// ── Add Product ──
 app.post('/api/products', authRetailer, async (req, res) => {
   try {
     const product = await Product.create({
@@ -121,7 +142,7 @@ app.post('/api/products', authRetailer, async (req, res) => {
   }
 });
 
-// ───── View Retailer's Products ─────
+// ── View Retailer's Products ──
 app.get('/api/products', authRetailer, async (req, res) => {
   try {
     const products = await Product.find({ retailer: req.retailerId });
@@ -131,7 +152,7 @@ app.get('/api/products', authRetailer, async (req, res) => {
   }
 });
 
-// ───── Featured Products ─────
+// ── Featured Products ──
 app.get('/api/products/featured', async (req, res) => {
   const products = await Product.find().limit(4);
   res.json(products);
