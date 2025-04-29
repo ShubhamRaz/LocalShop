@@ -19,79 +19,80 @@
     </nav>
     <div class="user-actions">
       <div class="search-bar">
-        <input type="text" placeholder="Search products..."/>
-        <button>Search</button>
+        <input type="text" placeholder="Search products..." id="search-input"/>
+        <button id="search-btn">Search</button>
       </div>
       <div class="cart">
-        <a href="#"><img src="cart-icon.png" alt="Cart"/><span class="cart-count">(0)</span></a>
+        <a href="javascript:void(0)"><img src="cart-icon.png" alt="Cart"/><span class="cart-count">(0)</span></a>
       </div>
       <div class="account">
         <a href="javascript:void(0)" id="login-link">Login</a>
-
       </div>
     </div>
   </header>
 
   <main>
-    <!-- Login / Register -->
-    <section id="login-section" style="display: none;">
+    <!-- Login / Register Section -->
+    <section id="login-section" style="display:none">
       <h2>Login / Register</h2>
       <div class="login-options">
         <button id="user-login-btn">User Login</button>
         <button id="user-register-btn">Register as User</button>
         <button id="retailer-login-btn">Retailer Login</button>
         <button id="retailer-register-btn">Register as Retailer</button>
-
       </div>
 
-      <div id="user-login-form" style="display: none;">
+      <!-- User Login Form -->
+      <div id="user-login-form" style="display:none">
         <h3>User Login</h3>
         <form id="userLoginForm">
-          <label>Email</label><br/>
-          <input type="email" id="login-email" required/><br/><br/>
-          <label>Password</label><br/>
-          <input type="password" id="login-password" required/><br/><br/>
+          <label for="login-email">Email</label><br>
+          <input type="email" id="login-email" required/><br><br>
+          <label for="login-password">Password</label><br>
+          <input type="password" id="login-password" required/><br><br>
           <button type="submit">Login</button>
         </form>
       </div>
 
-      <div id="user-register-form" style="display: none;">
-        <h3>Register</h3>
+      <!-- User Registration Form -->
+      <div id="user-register-form" style="display:none">
+        <h3>User Registration</h3>
         <form id="userRegisterForm">
-          <label>Email</label><br/>
-          <input type="email" id="reg-email" required/><br/><br/>
-          <label>Password</label><br/>
-          <input type="password" id="reg-password" required/><br/><br/>
+          <label for="reg-email">Email</label><br>
+          <input type="email" id="reg-email" required/><br><br>
+          <label for="reg-password">Password</label><br>
+          <input type="password" id="reg-password" required/><br><br>
           <button type="submit">Register</button>
         </form>
       </div>
 
-      <div id="retailer-login-form" style="display: none;">
+      <!-- Retailer Login Form -->
+      <div id="retailer-login-form" style="display:none">
         <h3>Retailer Login</h3>
         <form id="retailerLoginForm">
-          <label>Email</label><br/>
-          <input type="email" id="retailer-email" required/><br/><br/>
-          <label>Password</label><br/>
-          <input type="password" id="retailer-password" required/><br/><br/>
+          <label for="retailer-login-email">Email</label><br>
+          <input type="email" id="retailer-login-email" required/><br><br>
+          <label for="retailer-login-password">Password</label><br>
+          <input type="password" id="retailer-login-password" required/><br><br>
           <button type="submit">Login</button>
         </form>
       </div>
 
-      <div id="retailer-register-form" style="display: none;">
-        <h3>Register as Retailer</h3>
+      <!-- Retailer Registration Form -->
+      <div id="retailer-register-form" style="display:none">
+        <h3>Retailer Registration</h3>
         <form id="retailerRegisterForm">
-          <label>Email</label><br/>
-          <input type="email" id="retailer-reg-email" required/><br/><br/>
-          <label>Password</label><br/>
-          <input type="password" id="retailer-reg-password" required/><br/><br/>
+          <label for="retailer-reg-email">Email</label><br>
+          <input type="email" id="retailer-reg-email" required/><br><br>
+          <label for="retailer-reg-password">Password</label><br>
+          <input type="password" id="retailer-reg-password" required/><br><br>
           <button type="submit">Register</button>
         </form>
       </div>
-      
     </section>
 
     <!-- Retailer Dashboard -->
-    <section id="retailer-dashboard" style="display: none;">
+    <section id="retailer-dashboard" style="display:none">
       <h2>Retailer Dashboard</h2>
       <div class="dashboard-options">
         <button id="create-shop-btn">Create New Shop</button>
@@ -99,31 +100,31 @@
         <button id="view-products-btn">View Your Products</button>
       </div>
 
-      <div id="create-shop-form" style="display: none;">
+      <div id="create-shop-form" style="display:none">
         <h3>Create Shop</h3>
         <form id="createShopForm">
-          <label>Shop Name</label><br/>
-          <input type="text" id="shop-name" required/><br/><br/>
-          <label>Description</label><br/>
-          <textarea id="shop-description"></textarea><br/><br/>
+          <label for="shop-name">Shop Name</label><br>
+          <input type="text" id="shop-name" required/><br><br>
+          <label for="shop-description">Description</label><br>
+          <textarea id="shop-description"></textarea><br><br>
           <button type="submit">Create</button>
         </form>
       </div>
 
-      <div id="add-product-form" style="display: none;">
+      <div id="add-product-form" style="display:none">
         <h3>Add Product</h3>
         <form id="addProductForm">
-          <label>Name</label><br/>
-          <input type="text" id="product-name" required/><br/><br/>
-          <label>Description</label><br/>
-          <textarea id="product-description"></textarea><br/><br/>
-          <label>Price</label><br/>
-          <input type="number" id="product-price" step="0.01" required/><br/><br/>
+          <label for="product-name">Name</label><br>
+          <input type="text" id="product-name" required/><br><br>
+          <label for="product-description">Description</label><br>
+          <textarea id="product-description"></textarea><br><br>
+          <label for="product-price">Price</label><br>
+          <input type="number" id="product-price" step="0.01" required/><br><br>
           <button type="submit">Add</button>
         </form>
       </div>
 
-      <div id="view-products-list" style="display: none;">
+      <div id="view-products-list" style="display:none">
         <h3>Your Products</h3>
         <ul id="product-list"></ul>
       </div>
@@ -133,6 +134,15 @@
     <section class="featured-products">
       <h2>Featured Products</h2>
       <div class="product-grid"></div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+      <h2>Stay Updated!</h2>
+      <form>
+        <input type="email" placeholder="Enter your email" required/>
+        <button type="submit">Subscribe</button>
+      </form>
     </section>
   </main>
 

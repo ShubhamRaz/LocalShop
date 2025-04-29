@@ -1,116 +1,101 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // ———————— Helpers ————————
+    // Helper to build full API URL
     const API = path => `${window.location.origin}${path}`;
-    const getToken = () => localStorage.getItem('token');
-    const setToken = t => localStorage.setItem('token', t);
-    const clearToken = () => localStorage.removeItem('token');
+    // Token helpers
+    const getToken    = () => localStorage.getItem('token');
+    const setToken    = t => localStorage.setItem('token', t);
+    const clearToken  = () => localStorage.removeItem('token');
   
-    // ———————— Element References ————————
-    const headerAccount        = document.querySelector('.account');
-    const loginLink            = document.getElementById('login-link');
-    const loginSection         = document.getElementById('login-section');
-    const userLoginBtn         = document.getElementById('user-login-btn');
-    const userRegisterBtn      = document.getElementById('user-register-btn');
-    const retailerLoginBtn     = document.getElementById('retailer-login-btn');
-    const retailerRegisterBtn  = document.getElementById('retailer-register-btn');
-    const userLoginForm        = document.getElementById('user-login-form');
-    const userRegisterForm     = document.getElementById('user-register-form');
-    const retailerLoginForm    = document.getElementById('retailer-login-form');
-    const retailerRegisterForm = document.getElementById('retailer-register-form');
-    const dashboard            = document.getElementById('retailer-dashboard');
-    const createShopBtn        = document.getElementById('create-shop-btn');
-    const addProductBtn        = document.getElementById('add-product-btn');
-    const viewProductsBtn      = document.getElementById('view-products-btn');
-    const createShopForm       = document.getElementById('create-shop-form');
-    const addProductForm       = document.getElementById('add-product-form');
-    const viewProductsList     = document.getElementById('view-products-list');
-    const productList          = document.getElementById('product-list');
-    const cartCountSpan        = document.querySelector('.cart-count');
-    const searchInput          = document.querySelector('.search-bar input');
-    const searchBtn            = document.querySelector('.search-bar button');
-    const newsletterForm       = document.querySelector('.newsletter form');
+    // Element refs
+    const headerAccount         = document.querySelector('.account');
+    const loginLink             = document.getElementById('login-link');
+    const loginSection          = document.getElementById('login-section');
+    const userLoginBtn          = document.getElementById('user-login-btn');
+    const userRegisterBtn       = document.getElementById('user-register-btn');
+    const retailerLoginBtn      = document.getElementById('retailer-login-btn');
+    const retailerRegisterBtn   = document.getElementById('retailer-register-btn');
+    const userLoginForm         = document.getElementById('userLoginForm');
+    const userRegisterForm      = document.getElementById('userRegisterForm');
+    const retailerLoginForm     = document.getElementById('retailerLoginForm');
+    const retailerRegisterForm  = document.getElementById('retailerRegisterForm');
+    const dashboard             = document.getElementById('retailer-dashboard');
+    const createShopBtn         = document.getElementById('create-shop-btn');
+    const addProductBtn         = document.getElementById('add-product-btn');
+    const viewProductsBtn       = document.getElementById('view-products-btn');
+    const createShopForm        = document.getElementById('createShopForm');
+    const addProductForm        = document.getElementById('addProductForm');
+    const viewProductsList      = document.getElementById('view-products-list');
+    const productList           = document.getElementById('product-list');
+    const cartCountSpan         = document.querySelector('.cart-count');
+    const searchInput           = document.getElementById('search-input');
+    const searchBtn             = document.getElementById('search-btn');
+    const newsletterForm        = document.querySelector('.newsletter form');
+  
     let cartCount = 0;
   
-    // ———————— UI State Functions ————————
-    function hideAllForms() {
-      loginSection.style.display       = 'none';
-      userLoginForm.style.display      = 'none';
-      userRegisterForm.style.display   = 'none';
-      retailerLoginForm.style.display  = 'none';
-      retailerRegisterForm.style.display = 'none';
-      dashboard.style.display          = 'none';
-      createShopForm.style.display     = 'none';
-      addProductForm.style.display     = 'none';
-      viewProductsList.style.display   = 'none';
+    // Hide everything helper
+    function hideAll() {
+      loginSection.style.display        = 'none';
+      userLoginForm.style.display       = 'none';
+      userRegisterForm.style.display    = 'none';
+      retailerLoginForm.style.display   = 'none';
+      retailerRegisterForm.style.display= 'none';
+      dashboard.style.display           = 'none';
+      createShopForm.style.display      = 'none';
+      addProductForm.style.display      = 'none';
+      viewProductsList.style.display    = 'none';
     }
   
-    function showLogout() {
-      headerAccount.innerHTML = `<a href="javascript:void(0)" id="logout-link">Logout</a>`;
-      document.getElementById('logout-link').onclick = e => {
+    // Show dynamic Logout link
+    function renderAccount() {
+      const token = getToken();
+      headerAccount.innerHTML =
+        token
+          ? `<a href="javascript:void(0)" id="logout-link">Logout</a>`
+          : `<a href="javascript:void(0)" id="login-link">Login</a>`;
+  
+      const a = document.getElementById('logout-link') || document.getElementById('login-link');
+      a.onclick = e => {
         e.preventDefault();
-        clearToken();
-        alert('Logged out');
-        initialize();
+        if (token) {
+          clearToken();
+          alert('Logged out');
+          init();
+        } else {
+          hideAll();
+          loginSection.style.display = 'block';
+        }
       };
     }
   
-    // ———————— Initialization ————————
-    async function initialize() {
-      hideAllForms();
+    // Initialize UI based on login state
+    function init() {
+      hideAll();
+      renderAccount();
+  
       const token = getToken();
       if (token) {
-        showLogout();
-        // If retailer, show dashboard by default
+        // Peek JWT to see if retailer
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
           if (payload.type === 'retailer') {
             dashboard.style.display = 'block';
           }
         } catch {}
-      } else {
-        headerAccount.innerHTML = `<a href="javascript:void(0)" id="login-link">Login</a>`;
-        document.getElementById('login-link').onclick = e => {
-          e.preventDefault();
-          loginSection.style.display = 'block';
-        };
       }
     }
   
-    // ———————— Button Handlers ————————
-    userLoginBtn.onclick = () => {
-      hideAllForms();
-      loginSection.style.display  = 'block';
-      userLoginForm.style.display = 'block';
-    };
-    userRegisterBtn.onclick = () => {
-      hideAllForms();
-      loginSection.style.display     = 'block';
-      userRegisterForm.style.display = 'block';
-    };
-    retailerLoginBtn.onclick = () => {
-      hideAllForms();
-      loginSection.style.display        = 'block';
-      retailerLoginForm.style.display   = 'block';
-    };
-    retailerRegisterBtn.onclick = () => {
-      hideAllForms();
-      loginSection.style.display           = 'block';
-      retailerRegisterForm.style.display   = 'block';
-    };
-    createShopBtn.onclick = () => {
-      hideAllForms();
-      dashboard.style.display      = 'block';
-      createShopForm.style.display = 'block';
-    };
-    addProductBtn.onclick = () => {
-      hideAllForms();
-      dashboard.style.display     = 'block';
-      addProductForm.style.display= 'block';
-    };
+    // Toggle handlers
+    userLoginBtn.onclick    = () => { hideAll(); loginSection.style.display = 'block'; userLoginForm.style.display = 'block'; };
+    userRegisterBtn.onclick = () => { hideAll(); loginSection.style.display = 'block'; userRegisterForm.style.display = 'block'; };
+    retailerLoginBtn.onclick    = () => { hideAll(); loginSection.style.display = 'block'; retailerLoginForm.style.display = 'block'; };
+    retailerRegisterBtn.onclick = () => { hideAll(); loginSection.style.display = 'block'; retailerRegisterForm.style.display = 'block'; };
+    createShopBtn.onclick       = () => { hideAll(); dashboard.style.display = 'block'; createShopForm.style.display = 'block'; };
+    addProductBtn.onclick       = () => { hideAll(); dashboard.style.display = 'block'; addProductForm.style.display = 'block'; };
     viewProductsBtn.onclick = async () => {
-      hideAllForms();
-      dashboard.style.display         = 'block';
-      viewProductsList.style.display  = 'block';
+      hideAll();
+      dashboard.style.display = 'block';
+      viewProductsList.style.display = 'block';
       const res = await fetch(API('/api/products'), {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
@@ -118,173 +103,147 @@ document.addEventListener('DOMContentLoaded', () => {
       productList.innerHTML = prods.map(p => `<li>${p.name} — $${p.price}</li>`).join('');
     };
   
-    // ———————— Form Submissions ————————
+    // Form submissions
     userRegisterForm.addEventListener('submit', async e => {
       e.preventDefault();
-      const email    = document.getElementById('reg-email').value;
-      const password = document.getElementById('reg-password').value;
-      try {
-        const res = await fetch(API('/api/users/register'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message);
-        setToken(data.token);
-        alert('User registered!');
-        initialize();
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
+      const email = document.getElementById('reg-email').value;
+      const pwd   = document.getElementById('reg-password').value;
+      const r     = await fetch(API('/api/users/register'), {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ email, password: pwd })
+      });
+      const d = await r.json();
+      if (!r.ok) return alert(d.message);
+      setToken(d.token);
+      alert('User registered!');
+      init();
     });
   
     userLoginForm.addEventListener('submit', async e => {
       e.preventDefault();
-      const email    = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-      try {
-        const res = await fetch(API('/api/users/login'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message);
-        setToken(data.token);
-        alert('User logged in!');
-        initialize();
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
+      const email = document.getElementById('login-email').value;
+      const pwd   = document.getElementById('login-password').value;
+      const r     = await fetch(API('/api/users/login'), {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ email, password: pwd })
+      });
+      const d = await r.json();
+      if (!r.ok) return alert(d.message);
+      setToken(d.token);
+      alert('User logged in!');
+      init();
     });
   
     retailerRegisterForm.addEventListener('submit', async e => {
       e.preventDefault();
-      const email    = document.getElementById('retailer-reg-email').value;
-      const password = document.getElementById('retailer-reg-password').value;
-      try {
-        const res = await fetch(API('/api/retailers/register'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message);
-        setToken(data.token);
-        alert('Retailer registered!');
-        initialize();
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
+      const email = document.getElementById('retailer-reg-email').value;
+      const pwd   = document.getElementById('retailer-reg-password').value;
+      const r     = await fetch(API('/api/retailers/register'), {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ email, password: pwd })
+      });
+      const d = await r.json();
+      if (!r.ok) return alert(d.message);
+      setToken(d.token);
+      alert('Retailer registered!');
+      init();
     });
   
     retailerLoginForm.addEventListener('submit', async e => {
       e.preventDefault();
-      const email    = document.getElementById('retailer-email').value;
-      const password = document.getElementById('retailer-password').value;
-      try {
-        const res = await fetch(API('/api/retailers/login'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message);
-        setToken(data.token);
-        alert('Retailer logged in!');
-        initialize();
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
+      const email = document.getElementById('retailer-login-email').value;
+      const pwd   = document.getElementById('retailer-login-password').value;
+      const r     = await fetch(API('/api/retailers/login'), {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ email, password: pwd })
+      });
+      const d = await r.json();
+      if (!r.ok) return alert(d.message);
+      setToken(d.token);
+      alert('Retailer logged in!');
+      init();
     });
   
     createShopForm.addEventListener('submit', async e => {
       e.preventDefault();
       const name = document.getElementById('shop-name').value;
       const desc = document.getElementById('shop-description').value;
-      try {
-        const res = await fetch(API('/api/shops'), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getToken()}`
-          },
-          body: JSON.stringify({ name, description: desc })
-        });
-        const shop = await res.json();
-        if (!res.ok) throw new Error(shop.message);
-        alert(`Shop created: ${shop.name}`);
-        initialize();
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
+      const r = await fetch(API('/api/shops'), {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          Authorization:`Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ name, description: desc })
+      });
+      const d = await r.json();
+      if (!r.ok) return alert(d.message);
+      alert(`Shop "${d.name}" created!`);
+      init();
     });
   
     addProductForm.addEventListener('submit', async e => {
       e.preventDefault();
       const body = {
-        name:        document.getElementById('product-name').value,
+        name: document.getElementById('product-name').value,
         description: document.getElementById('product-description').value,
-        price:       parseFloat(document.getElementById('product-price').value),
-        imageUrl:    ''
+        price: parseFloat(document.getElementById('product-price').value),
+        imageUrl: ''
       };
-      try {
-        const res = await fetch(API('/api/products'), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getToken()}`
-          },
-          body: JSON.stringify(body)
-        });
-        const prod = await res.json();
-        if (!res.ok) throw new Error(prod.message);
-        alert(`Product added: ${prod.name}`);
-        initialize();
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
+      const r = await fetch(API('/api/products'), {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          Authorization:`Bearer ${getToken()}`
+        },
+        body: JSON.stringify(body)
+      });
+      const d = await r.json();
+      if (!r.ok) return alert(d.message);
+      alert(`Product "${d.name}" added!`);
+      init();
     });
   
-    // ———————— Featured & Search ————————
+    // Load & render featured products + setup cart
     async function loadFeatured() {
-      const res = await fetch(API('/api/products/featured'));
-      const prods = await res.json();
-      document.querySelector('.product-grid').innerHTML = prods.map(p => `
+      const r = await fetch(API('/api/products/featured'));
+      const items = await r.json();
+      const grid = document.querySelector('.product-grid');
+      grid.innerHTML = items.map(p => `
         <div class="product-card">
-          <img src="${p.imageUrl||'product-placeholder.png'}" alt="${p.name}">
+          <img src="${p.imageUrl||'product-placeholder.png'}" alt="${p.name}"/>
           <h3>${p.name}</h3>
           <p class="price">$${p.price}</p>
           <button class="add-to-cart">Add to Cart</button>
         </div>
       `).join('');
-      document.querySelectorAll('.add-to-cart').forEach(btn => {
+      grid.querySelectorAll('.add-to-cart').forEach(btn => {
         btn.onclick = () => {
           cartCount++;
           cartCountSpan.textContent = `(${cartCount})`;
         };
       });
     }
-    loadFeatured();
   
-    searchBtn.addEventListener('click', () => {
+    // Search handler
+    searchBtn.onclick = () => {
       const term = searchInput.value.trim().toLowerCase();
       document.querySelectorAll('.product-card').forEach(card => {
-        const title = card.querySelector('h3').textContent.toLowerCase();
-        card.style.display = title.includes(term) ? '' : 'none';
+        const name = card.querySelector('h3').textContent.toLowerCase();
+        card.style.display = name.includes(term) ? '' : 'none';
       });
-    });
+    };
   
-    // ———————— Newsletter Stub ————————
-    newsletterForm.addEventListener('submit', e => {
+    // Newsletter stub
+    newsletterForm.onsubmit = e => {
       e.preventDefault();
-      const email = newsletterForm.querySelector('input').value;
-      alert(`Thanks for subscribing, ${email}!`);
+      const em = newsletterForm.querySelector('input').value;
+      alert(`Thanks for subscribing, ${em}!`);
       newsletterForm.reset();
-    });
+    };
   
-    // ———————— Kick off ————————
-    initialize();
+    // Kick things off
+    init();
+    loadFeatured();
   });
   
