@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
 const cors = require('cors');
@@ -9,24 +8,27 @@ const jwt = require('jsonwebtoken');
 dotenv.config();
 const app = express();
 
-app.use(cors());
+// CORS configuration for React development
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? false 
+    : ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error(err));
+// Serve static files from React build in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'build')));
+}
 
-// Models
-const User     = require('./models/User');
-const Retailer = require('./models/Retailer');
-const Shop     = require('./models/Shop');
-const Product  = require('./models/Product');
+// In-memory data storage (for demo purposes - replace with a real database later)
+const users = [];
+const retailers = [];
+const shops = [];
+const products = [];
 
 // JWT helper
 function generateToken(id, type) {
@@ -51,12 +53,17 @@ function authRetailer(req, res, next) {
 app.post('/api/users/register', async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (await User.findOne({ email })) {
+    if (users.find(u => u.email === email)) {
       return res.status(400).json({ message: 'Email already exists' });
     }
-    const user = new User({ email, password });
-    await user.save();
-    const token = generateToken(user._id, 'user');
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = { 
+      id: Date.now().toString(), 
+      email, 
+      password: hashedPassword 
+    };
+    users.push(user);
+    const token = generateToken(user.id, 'user');
     res.status(201).json({ token });
   } catch (err) {
     console.error(err);
@@ -68,44 +75,48 @@ app.post('/api/users/register', async (req, res) => {
 app.post('/api/users/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = users.find(u => u.email === email);
     if (!user) return res.status(401).json({ message: 'Invalid credentials' });
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
-    const token = generateToken(user._id, 'user');
+    const token = generateToken(user.id, 'user');
     res.json({ token });
   } catch {
     res.status(500).json({ message: 'Login failed' });
   }
 });
 
-
 // ── Retailer Registration ──
 app.post('/api/retailers/register', async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      if (await Retailer.findOne({ email })) {
-        return res.status(400).json({ message: 'Email already exists' });
-      }
-      const retailer = new Retailer({ email, password });
-      await retailer.save();
-      const token = generateToken(retailer._id, 'retailer');
-      res.status(201).json({ token });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: 'Registration failed' });
+  try {
+    const { email, password } = req.body;
+    if (retailers.find(r => r.email === email)) {
+      return res.status(400).json({ message: 'Email already exists' });
     }
-  });
-  
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const retailer = { 
+      id: Date.now().toString(), 
+      email, 
+      password: hashedPassword 
+    };
+    retailers.push(retailer);
+    const token = generateToken(retailer.id, 'retailer');
+    res.status(201).json({ token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Registration failed' });
+  }
+});
+
 // ── Retailer Login ──
 app.post('/api/retailers/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const retailer = await Retailer.findOne({ email });
+    const retailer = retailers.find(r => r.email === email);
     if (!retailer) return res.status(401).json({ message: 'Invalid credentials' });
     const isMatch = await bcrypt.compare(password, retailer.password);
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
-    const token = generateToken(retailer._id, 'retailer');
+    const token = generateToken(retailer.id, 'retailer');
     res.json({ token });
   } catch {
     res.status(500).json({ message: 'Login failed' });
@@ -113,13 +124,15 @@ app.post('/api/retailers/login', async (req, res) => {
 });
 
 // ── Create Shop ──
-app.post('/api/shops', authRetailer, async (req, res) => {
+app.post('/api/shops', authRetailer, (req, res) => {
   try {
-    const shop = await Shop.create({
+    const shop = {
+      id: Date.now().toString(),
       name: req.body.name,
       description: req.body.description,
       retailer: req.retailerId
-    });
+    };
+    shops.push(shop);
     res.json(shop);
   } catch {
     res.status(500).json({ message: 'Error creating shop' });
@@ -127,15 +140,17 @@ app.post('/api/shops', authRetailer, async (req, res) => {
 });
 
 // ── Add Product ──
-app.post('/api/products', authRetailer, async (req, res) => {
+app.post('/api/products', authRetailer, (req, res) => {
   try {
-    const product = await Product.create({
+    const product = {
+      _id: Date.now().toString(),
       name: req.body.name,
       description: req.body.description,
       price: req.body.price,
       imageUrl: req.body.imageUrl || '',
       retailer: req.retailerId
-    });
+    };
+    products.push(product);
     res.json(product);
   } catch {
     res.status(500).json({ message: 'Error adding product' });
@@ -143,25 +158,31 @@ app.post('/api/products', authRetailer, async (req, res) => {
 });
 
 // ── View Retailer's Products ──
-app.get('/api/products', authRetailer, async (req, res) => {
+app.get('/api/products', authRetailer, (req, res) => {
   try {
-    const products = await Product.find({ retailer: req.retailerId });
-    res.json(products);
+    const retailerProducts = products.filter(p => p.retailer === req.retailerId);
+    res.json(retailerProducts);
   } catch {
     res.status(500).json({ message: 'Error fetching products' });
   }
 });
 
 // ── Featured Products ──
-app.get('/api/products/featured', async (req, res) => {
-  const products = await Product.find().limit(4);
-  res.json(products);
+app.get('/api/products/featured', (req, res) => {
+  res.json(products.slice(0, 4));
 });
 
-// Fallback to front-end
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// Serve React app for all non-API routes (production only)
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  });
+}
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`✓ Server running on http://localhost:${PORT}`);
+  console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`✓ React dev server should run on http://localhost:3000`);
+  console.log(`✓ Using in-memory storage (data will reset on restart)`);
+});
